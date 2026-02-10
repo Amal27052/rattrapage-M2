@@ -1,130 +1,96 @@
+/**
+ * COMPOSANT APP - ROUTER PRINCIPAL
+ * 
+ * Ce fichier gère la navigation de l'application.
+ * Il définit toutes les routes (URLs) et les pages correspondantes.
+ */
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'react-hot-toast';
-import { useAuth } from './hooks/useAuth';
+import { isAuthenticated } from './services/api';
 
-// Pages
-import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { SpacesList } from './pages/SpacesList';
-import { SpaceDetail } from './pages/SpaceDetail';
-import { Bookings } from './pages/Bookings';
-import { QRCodePage } from './pages/QRCode';
-import { Profile } from './pages/Profile';
+// Import des pages
+import Login from './pages/Login';
+import Home from './pages/Home';
+import Booking from './pages/Booking';
+import QRCodePage from './pages/QRCodePage';
+import MyBookings from './pages/MyBookings';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
-
-// Protected Route Component
+/**
+ * Composant ProtectedRoute
+ * 
+ * Ce composant protège les routes qui nécessitent une authentification.
+ * Si l'utilisateur n'est pas connecté, il est redirigé vers /login
+ */
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+  // Vérifier si l'utilisateur est connecté
+  if (!isAuthenticated()) {
+    // Si non connecté, rediriger vers la page de connexion
+    return <Navigate to="/login" replace />;
   }
-
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  
+  // Si connecté, afficher la page demandée
+  return <>{children}</>;
 };
 
-function App() {
+/**
+ * Composant App principal
+ */
+const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Route */}
-          <Route path="/login" element={<Login />} />
+    <BrowserRouter>
+      <Routes>
+        {/* PAGE DE CONNEXION */}
+        <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/spaces"
-            element={
-              <ProtectedRoute>
-                <SpacesList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/spaces/:id"
-            element={
-              <ProtectedRoute>
-                <SpaceDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute>
-                <Bookings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings/:id/qr"
-            element={
-              <ProtectedRoute>
-                <QRCodePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+        {/* PAGES PROTÉGÉES (nécessitent d'être connecté) */}
+        
+        {/* Page d'accueil - Liste des espaces */}
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } 
+        />
 
-          {/* Redirect unknown routes */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </BrowserRouter>
+        {/* Page de réservation d'un espace */}
+        <Route 
+          path="/booking/:spaceId" 
+          element={
+            <ProtectedRoute>
+              <Booking />
+            </ProtectedRoute>
+          } 
+        />
 
-      {/* Toast Notifications */}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10B981',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
-    </QueryClientProvider>
+        {/* Page d'affichage du QR code */}
+        <Route 
+          path="/qrcode/:bookingId" 
+          element={
+            <ProtectedRoute>
+              <QRCodePage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Page de mes réservations */}
+        <Route 
+          path="/bookings" 
+          element={
+            <ProtectedRoute>
+              <MyBookings />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* ROUTE PAR DÉFAUT */}
+        {/* Si l'URL ne correspond à rien, rediriger vers / */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;

@@ -1,50 +1,56 @@
-import React from 'react';
-import clsx from 'clsx';
+/**
+ * COMPOSANT BOUTON
+ * 
+ * Un bouton réutilisable avec différents styles.
+ * On peut l'utiliser partout dans l'application.
+ */
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  fullWidth?: boolean;
-  children: React.ReactNode;
+import React from 'react';
+
+// Props = propriétés qu'on peut passer au composant
+interface ButtonProps {
+  children: React.ReactNode;  // Le texte ou contenu du bouton
+  onClick?: () => void;        // Fonction appelée au clic (optionnel)
+  type?: 'button' | 'submit' | 'reset';  // Type HTML du bouton
+  variant?: 'primary' | 'secondary' | 'danger';  // Style du bouton
+  disabled?: boolean;          // Bouton désactivé ou non
+  fullWidth?: boolean;         // Prend toute la largeur ou non
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'md',
-  fullWidth = false,
+const Button: React.FC<ButtonProps> = ({
   children,
-  className,
-  disabled,
-  ...props
+  onClick,
+  type = 'button',
+  variant = 'primary',
+  disabled = false,
+  fullWidth = false,
 }) => {
-  const baseClasses = 'font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
-
+  // Classes CSS selon le variant choisi
   const variantClasses = {
-    primary: 'bg-primary hover:bg-primary-dark text-white shadow-sm',
-    secondary: 'bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white',
-    danger: 'bg-red-500 hover:bg-red-600 text-white',
-    ghost: 'bg-transparent hover:bg-gray-100 text-gray-700',
+    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
+    danger: 'bg-red-600 hover:bg-red-700 text-white',
   };
 
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2.5 text-base',
-    lg: 'px-6 py-3.5 text-lg',
-  };
+  // Classes de base du bouton
+  const baseClasses = 'px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  
+  // Classe pour la largeur
+  const widthClass = fullWidth ? 'w-full' : '';
+  
+  // Combiner toutes les classes
+  const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${widthClass}`;
 
   return (
     <button
-      className={clsx(
-        baseClasses,
-        variantClasses[variant],
-        sizeClasses[size],
-        fullWidth && 'w-full',
-        className
-      )}
+      type={type}
+      onClick={onClick}
       disabled={disabled}
-      {...props}
+      className={buttonClasses}
     >
       {children}
     </button>
   );
 };
+
+export default Button;
