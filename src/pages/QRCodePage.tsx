@@ -7,7 +7,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react';
 import { getBookingById } from '../services/api';
 import type { Booking } from '../types';
 import Button from '../components/Button';
@@ -50,28 +49,13 @@ const QRCodePage: React.FC = () => {
    * Télécharger le QR code en PNG
    */
   const handleDownload = () => {
-    const svg = document.getElementById('qr-code');
-    if (!svg) return;
+    if (!booking?.qrCode) return;
 
-    // Convertir le SVG en PNG (logique simplifiée)
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const img = new Image();
-    
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx?.drawImage(img, 0, 0);
-      
-      const pngUrl = canvas.toDataURL('image/png');
-      const downloadLink = document.createElement('a');
-      downloadLink.href = pngUrl;
-      downloadLink.download = `qrcode-${bookingId}.png`;
-      downloadLink.click();
-    };
-    
-    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    // Le QR code est déjà en base64, on peut le télécharger directement
+    const downloadLink = document.createElement('a');
+    downloadLink.href = booking.qrCode;
+    downloadLink.download = `qrcode-${bookingId}.png`;
+    downloadLink.click();
   };
 
   if (loading) {
@@ -160,13 +144,18 @@ const QRCodePage: React.FC = () => {
             </p>
             
             <div className="flex justify-center bg-white p-6 rounded-lg border-2 border-dashed border-gray-300">
-              <QRCodeSVG
-                id="qr-code"
-                value={booking.qrCode || `booking-${booking.id}`}
-                size={200}
-                level="H"
-                includeMargin={true}
-              />
+              {booking.qrCode ? (
+                <img
+                  id="qr-code"
+                  src={booking.qrCode}
+                  alt="QR Code d'accès"
+                  className="w-52 h-52"
+                />
+              ) : (
+                <div className="w-52 h-52 bg-gray-200 flex items-center justify-center">
+                  <p className="text-gray-500">QR Code non disponible</p>
+                </div>
+              )}
             </div>
           </div>
 
